@@ -1,9 +1,5 @@
 from monads import *
 
-from reader import reader_m
-from writer import writer_m
-
-
 
 class _Environment_m(Monad):
     "writer inside reader, for maps"
