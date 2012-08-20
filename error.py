@@ -6,11 +6,16 @@ class _Error_m(Monad):
         #careful, [] is falsey, which broke m-seq
         #careful, (None, None) does not signal an error, which broke m-seq
         return mf(mv[0]) if mv[1]==None else mv
-    def unit(self, v): return (v, None)
+    def unit(self, v): return self.ok(v)
+
+    @staticmethod
+    def ok(val): return (val, None)
+
+    @staticmethod
+    def err(msg): return (None, msg)
+
 
 error_m = _Error_m()
-def ok(val): return (val, None)
-def err(msg): return (None, msg)
 
 def test():
     chain = error_m.chain
@@ -18,6 +23,7 @@ def test():
     mmap = error_m.map
     join = error_m.join
     bind, unit = error_m.bind, error_m.unit
+    ok, err = error_m.ok, error_m.err
 
     assert chain(lambda x:ok(2*x), lambda x:ok(2*x))(2) == (8, None)
     assert chain(lambda x:err("error"), lambda x:ok(2*x))(2) == (None, "error")
