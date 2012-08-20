@@ -16,6 +16,7 @@ class Monad:
     def join(self, mv):
         """Converts a monadic value containing a monadic value into a 'simple'
         monadic value."""
+        # this fn dosn't even make sense, it doesn't typecheck in bind
         return self.bind(mv, identity)
 
     def fmap(self, f, mv): # -> mv
@@ -34,7 +35,9 @@ class Monad:
             return self.bind(p, lambda x:
                    self.bind(q, lambda y:
                    self.unit([x] + y))) #(cons x y)
-        return self.join(reduce(f, _reverse(ms), self.unit([])))
+        mv = reduce(f, _reverse(ms), self.unit([]))
+        return mv
+        #return self.join(mv)
 
     def map(self, mf, xs): # -> [x]
         """map mf over xs 'inside the monad', returning list of simple values?
