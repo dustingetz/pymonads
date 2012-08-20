@@ -13,11 +13,12 @@ class _Environment_m(Monad):
             return mf(val)(newenv)
         return _env_mv
 
+    # doesn't play well with env-t
     @staticmethod
     def runIn_s(mv, env): return mv(env)[0]
 
     @staticmethod
-    def ask_m(env): return (v, env)
+    def ask_m(env): return (env, env)
 
     @staticmethod
     def set_m(pair):
@@ -74,7 +75,6 @@ def _testm(env_m):
         bind(  get("c"),         lambda c:
                unit(c)           ))))))
 
-    print runIn(r, {})
     assert runIn(r, {}) == 5
     assert runIn(r, {"a":0}) == 5
     assert seq([r,r,r])({}) == ([5, 5, 5], {'a': 2, 'c': 5, 'b': 3})
