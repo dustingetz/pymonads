@@ -13,13 +13,6 @@ class _Environment_m(Monad):
             return mf(val)(newenv)
         return _env_mv
 
-    def join(self, mv):
-        "massive hack, this shouldn't change per monad! wtf"
-        # because its sort of really two nested monads - (writer_t reader_m)
-        return mv({})
-        print "joining:", mv({})
-        return self.bind(mv, lambda v: v)
-
 
     @staticmethod
     def runIn_s(mv, env): return mv(env)[0]
@@ -46,10 +39,12 @@ env_m = _Environment_m()
 def test():
     bind = env_m.bind
     unit = env_m.unit
-    fmap = env_m.fmap
+    fmap, mmap = env_m.fmap, env_m.map
     get = env_m.get_m
     set = env_m.set_m
     runIn = env_m.runIn_s
+    seq = env_m.seq
+    join = env_m.join
 
     r = bind(  set(("a", 2)),    lambda _:
         bind(  set(("b", 3)),    lambda _:
@@ -59,15 +54,12 @@ def test():
         bind(  get("c"),         lambda c:
                unit(c)           ))))))
 
-    print
-    print
-    print "r\t", r
-    print "r({})\t", r({})
-    #print "joined:\t", env_m.join(r)({})
-    print "seqed:\t", env_m.seq([r,r,r])({})
-
     assert runIn(r, {}) == 5
     assert runIn(r, {"a":0}) == 5
+    assert seq([r,r,r])({}) == ([5, 5, 5], {'a': 2, 'c': 5, 'b': 3})
+
+    assert mmap(unit, [1,2,3])({}) == ([1, 2, 3], {})
+    assert fmap(identity, r)({})[0] == 5
 
     r = bind(get("c"), lambda c: unit(c))
     assert runIn(r, {"c":42}) == 42
