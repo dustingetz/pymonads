@@ -9,7 +9,9 @@ class _Cont_m(Monad):
         return lambda c: c(v)
 
     def bind(self, mv, mf):
-        return lambda c: mv(lambda v: mf(v)(c))
+        def _cont_mv(c):
+            return mv(lambda v: mf(v)(c))
+        return _cont_mv
 
     @staticmethod
     def runCont(c):
@@ -28,8 +30,29 @@ class _Cont_m(Monad):
             return rc(c)
         return _
 
+class Cont_t(_Cont_m):
+    """"http://www.haskell.org/ghc/docs/6.10.4/html/libraries/mtl/src/Control-Monad-Cont.html#ContT"""
 
-cont_m = _Cont_m()
+    def __init__(self, basemonad):
+        self.base_m = basemonad
+
+    def unit(self, v):
+        bunit = self.base_m.unit
+
+        return lambda c: c(bunit(v))
+
+    def bind(self, mv, mf):
+        bbind = self.base_m.bind
+
+        def _cont_mv(c):
+            # return bbind( mv, lambda cont_val:
+            #               mf(cont_val)(c))
+            return bbind( mv, lambda cont_val:
+                          cont_val(lambda v: mf(v)(c)))
+        return _cont_mv
+
+from identity import identity_m
+cont_m = Cont_t(identity_m) #_Cont_m()
 
 
 if __name__=="__main__":
