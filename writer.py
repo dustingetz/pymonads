@@ -24,15 +24,27 @@ def test():
         x=x+1
         return withlog(x, "x+1==%s"%x)
 
-    assert writer_m.chain(addOne, addOne, addOne)(7) == (10, ['x+1==8', 'x+1==9', 'x+1==10'])
+
+    chain = writer_m.chain
+    assert chain(addOne, addOne, addOne)(7) == (10, ['x+1==8', 'x+1==9', 'x+1==10'])
+
+    bind, unit = writer_m.bind, writer_m.unit
 
     r = writer_m.bind( withlog(7, "init as 7"), lambda x:
         writer_m.bind( withlog(x+1, "+1"), lambda y:
         writer_m.bind( nolog(y), lambda z:
         writer_m.bind( withlog(x+y+z, "sum the steps"), lambda a:
         writer_m.unit( a )))))
-
     assert r == (23, ['init as 7', '+1', 'sum the steps'])
+
+    mmap = writer_m.map
+    assert mmap(addOne, [1,2,3]) == ([2, 3, 4], ['x+1==2', 'x+1==3', 'x+1==4'])
+
+    addThreeLogged = chain(addOne, addOne, addOne)
+    assert map(addThreeLogged, [10,20,30]) == [
+        (13, ['x+1==11', 'x+1==12', 'x+1==13']),
+        (23, ['x+1==21', 'x+1==22', 'x+1==23']),
+        (33, ['x+1==31', 'x+1==32', 'x+1==33'])]
 
 
 if __name__=="__main__":
